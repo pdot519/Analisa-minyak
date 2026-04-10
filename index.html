@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistem Rekod Kad Inden & Analisa Bahan Api - BBP Kamunting</title>
+    <style>
+        /* ASPEK REKA BENTUK ASAL (LAYOUT & FONT) */
+        @page { size: A4; margin: 0; }
+        body { font-family: Arial, sans-serif; font-size: 11px; margin: 0; padding: 0; background-color: #555; }
+        
+        .paper { 
+            width: 210mm; min-height: 297mm; padding: 15mm; margin: 10mm auto; 
+            background: white; box-shadow: 0 0 10px rgba(0,0,0,0.5); position: relative; 
+            box-sizing: border-box;
+        }
+
+        /* HEADER & TEKS PEKELILING */
+        .header-meta { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 2px; }
+        .lampiran-tag { text-align: right; font-weight: bold; margin-bottom: 10px; font-size: 12px; }
+        .title-main { text-align: center; font-weight: bold; text-decoration: underline; font-size: 13px; margin: 10px 0; text-transform: uppercase; }
+
+        /* JADUAL IKUT FORMAT SUMBER */
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; table-layout: fixed; }
+        table, th, td { border: 1px solid black; }
+        th { padding: 4px; font-size: 9px; text-align: center; background-color: #f2f2f2; }
+        td { padding: 2px; height: 28px; vertical-align: middle; }
+        
+        /* INPUT INTERAKTIF */
+        input, textarea, select { 
+            width: 100%; border: none; font-family: Arial; font-size: 11px; 
+            outline: none; background: transparent; padding: 2px; box-sizing: border-box;
+        }
+        input:focus { background: #fffde7; }
+        .border-bottom { border-bottom: 1px solid black !important; width: 250px; display: inline-block; }
+
+        /* PANEL KAWALAN (OFFLINE TOOLS) */
+        .no-print-panel { 
+            width: 210mm; margin: 20px auto; padding: 20px; 
+            background: #1a1a1a; color: #fff; border-radius: 8px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            box-sizing: border-box;
+        }
+        .btn { 
+            padding: 10px 20px; cursor: pointer; border: none; border-radius: 4px; 
+            font-weight: bold; margin-right: 10px; transition: 0.2s;
+        }
+        .btn-save { background: #2ecc71; color: white; }
+        .btn-print { background: #3498db; color: white; }
+        .btn-clear { background: #e74c3c; color: white; }
+        
+        .record-box { margin-top: 15px; border-top: 1px solid #444; padding-top: 10px; }
+        .record-item { 
+            display: flex; justify-content: space-between; background: #333; 
+            padding: 8px; margin-bottom: 5px; border-radius: 4px; align-items: center; 
+        }
+
+        .copyright-section {
+            text-align: center; margin-top: 30px; font-size: 10px; color: #7f8c8d;
+            border-top: 1px solid #eee; padding-top: 10px;
+        }
+
+        /* PRINT OPTIMIZATION (JBPM ALIGNMENT) */
+        @media print {
+            body { background: white; }
+            .no-print-panel, .copyright-section { display: none !important; }
+            .paper { margin: 0; box-shadow: none; width: 100%; padding: 12mm; }
+            .page-break { page-break-after: always; }
+            input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        }
+    </style>
+</head>
+<body>
+
+
+<div class="paper page-break">
+    <div class="header-meta">
+        <span>Pekeliling Perbendaharaan Malaysia</span>
+        <span>WP 4.1 Lampiran A </span>
+    </div>
+    <div class="lampiran-tag">LAMPIRAN A2 </div>
+    <div class="title-main">FORMAT REKOD PERGERAKAN KAD INDEN </div>
+
+    <div style="margin: 20px 0;">
+        NO. SIRI KAD: <div class="border-bottom"><input type="text" id="a_siri"></div><br>
+        NO. JENTERA/MODEL: <div class="border-bottom"><input type="text" id="a_jentera"></div> 
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th rowspan="2" style="width:30px;">Bil.</th>
+                <th rowspan="2" style="width:70px;">Tarikh Kad Diambil</th>
+                <th colspan="2">Pegawai Yang Menyerahkan Kad</th>
+                <th colspan="2">Pemandu</th>
+                <th rowspan="2" style="width:70px;">Tarikh Dikembalikan</th>
+                <th colspan="2">Penerima Kad Yang Dikembalikan</th>
+                <th colspan="2" style="width:90px;">Jumlah Diisi</th>
+                <th rowspan="2" style="width:70px;">No. Resit</th>
+            </tr>
+            <tr>
+                <th>Nama</th>
+                <th style="width:50px;">T.Tangan</th>
+                <th>Nama</th>
+                <th style="width:50px;">T.Tangan</th>
+                <th>Nama</th>
+                <th style="width:50px;">T.Tangan</th>
+                <th style="width:40px;">Liter</th>
+                <th style="width:50px;">RM</th>
+            </tr>
+        </thead>
+        <tbody id="table_a2_body"></tbody>
+    </table>
+</div>
+
+<div class="paper">
+    <div class="header-meta">
+        <span>Pekeliling Perbendaharaan Malaysia</span>
+        <span>WP 4.1 Lampiran C </span>
+    </div>
+    <div class="lampiran-tag">LAMPIRAN C4 </div>
+    <div class="title-main">FORMAT ANALISA KADAR PENGGUNAAN BAHAN API BULANAN</div>
+
+    <div style="margin-bottom: 20px; line-height: 2;">
+        Nama Kementerian/ Jabatan: <strong>BALAI BOMBA DAN PENYELAMAT KAMUNTING, PERAK</strong> <br>
+        No. Daftar Kenderaan: <div class="border-bottom"><input type="text" id="c_no_daftar"></div> 
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:40px;">Bil.</th>
+                <th style="width:150px;">Bulan/Tahun </th>
+                <th>Jumlah perbatuan bulanan (km) </th>
+                <th>Jumlah penggunaan bahan api bulanan (Liter) </th>
+                <th>Kadar Penggunaan Bahan Api (km/liter) </th>
+            </tr>
+        </thead>
+        <tbody id="table_c4_body"></tbody>
+    </table>
+
+    <div style="margin-top: 20px;">
+        <div style="font-weight:bold; margin-bottom:5px;">Ulasan Analisa Bulan Januari hingga Jun:</div>
+        <textarea id="u_1" style="border: 1px solid black; height: 60px; padding: 5px;"></textarea>
+        
+        <div style="font-weight:bold; margin-top:15px; margin-bottom:5px;">Ulasan Analisa Bulan Julai hingga Disember: </div>
+        <textarea id="u_2" style="border: 1px solid black; height: 60px; padding: 5px;"></textarea>
+        
+        <div style="font-weight:bold; margin-top:15px; margin-bottom:5px;">Ulasan Analisa Tahunan (Ketua Jabatan):</div>
+        <textarea id="u_3" style="border: 1px solid black; height: 60px; padding: 5px;"></textarea>
+    </div>
+
+    <div class="copyright-section">
+        Hakcipta & Rekabentuk &copy; 2026 Muhammad Firdaus Bin Norizan | BBP Kamunting
+    </div>
+</div>
+<div class="no-print-panel">
+    <h2 style="margin-top:0; color: #3498db;">🚒 Pengurusan Minyak BBP Kamunting</h2>
+    <div style="margin-bottom: 15px;">
+        <label>Nama Rekod (Contoh: Jentera WXX123 - April 2026):</label><br>
+        <input type="text" id="rec_name" style="background: #fff; border-radius: 4px; padding: 8px; margin-top:5px; width: 300px; color: #000;">
+    </div>
+    
+    <button class="btn btn-save" onclick="saveRecord()">💾 SIMPAN REKOD</button>
+    <button class="btn btn-print" onclick="window.print()">🖨️ CETAK SEKARANG</button>
+    <button class="btn btn-clear" onclick="resetForm()">🔄 KOSONGKAN BORANG</button>
+
+    <div class="record-box">
+        <strong>📂 SENARAI REKOD TERDAHULU:</strong>
+        <div id="record_list" style="margin-top: 10px; max-height: 200px; overflow-y: auto;"></div>
+    </div>
+</div>
+
+
+<script>
+    const months = ["Januari", "Februari", "Mac", "April", "Mei", "Jun", "Julai", "Ogos", "September", "Oktober", "November", "Disember"];
+    let currentEditKey = null;
+
+    function init() {
+        const bodyA2 = document.getElementById('table_a2_body');
+        for(let i=1; i<=15; i++) {
+            bodyA2.innerHTML += `<tr>
+                <td align="center">${i}</td>
+                <td><input type="text" class="a-data" data-row="${i}" data-col="tkh"></td>
+                <td><input type="text" class="a-data" data-row="${i}" data-col="n1"></td>
+                <td></td>
+                <td><input type="text" class="a-data" data-row="${i}" data-col="n2"></td>
+                <td></td>
+                <td><input type="text" class="a-data" data-row="${i}" data-col="tkh_k"></td>
+                <td><input type="text" class="a-data" data-row="${i}" data-col="n3"></td>
+                <td></td>
+                <td><input type="number" step="0.01" class="a-data" data-row="${i}" data-col="lit"></td>
+                <td><input type="number" step="0.01" class="a-data" data-row="${i}" data-col="rm"></td>
+                <td><input type="text" class="a-data" data-row="${i}" data-col="resit"></td>
+            </tr>`;
+        }
+
+        const bodyC4 = document.getElementById('table_c4_body');
+        months.forEach((m, i) => {
+            bodyC4.innerHTML += `<tr>
+                <td align="center">${i+1}</td>
+                <td>${m}/ <input type="text" class="c-year" style="width:40px" value="2026"></td>
+                <td><input type="number" class="c-km" oninput="calc(${i})"></td>
+                <td><input type="number" step="0.01" class="c-lit" oninput="calc(${i})"></td>
+                <td align="center" id="res_${i}" style="font-weight:bold;">0.00</td>
+            </tr>`;
+        });
+        loadRecordsList();
+    }
+
+    function calc(i) {
+        const km = document.querySelectorAll('.c-km')[i].value;
+        const lit = document.querySelectorAll('.c-lit')[i].value;
+        const res = document.getElementById(`res_${i}`);
+        if(km && lit && lit > 0) res.innerText = (km / lit).toFixed(2);
+        else res.innerText = "0.00";
+    }
+
+    function saveRecord() {
+        const name = document.getElementById('rec_name').value;
+        if(!name) return alert("Sila masukkan nama rekod (Contoh: Jentera WXX123 - April 2026)");
+
+        const data = {
+            a_siri: document.getElementById('a_siri').value,
+            a_jentera: document.getElementById('a_jentera').value,
+            c_no: document.getElementById('c_no_daftar').value,
+            a_vals: Array.from(document.querySelectorAll('.a-data')).map(el => el.value),
+            c_km: Array.from(document.querySelectorAll('.c-km')).map(el => el.value),
+            c_lit: Array.from(document.querySelectorAll('.c-lit')).map(el => el.value),
+            c_year: Array.from(document.querySelectorAll('.c-year')).map(el => el.value),
+            ulasan: [document.getElementById('u_1').value, document.getElementById('u_2').value, document.getElementById('u_3').value]
+        };
+
+        const key = currentEditKey || 'BOMBA_' + name;
+        localStorage.setItem(key, JSON.stringify(data));
+        alert("Data berjaya disimpan!");
+        loadRecordsList();
+    }
+
+    function loadRecordsList() {
+        const list = document.getElementById('record_list');
+        list.innerHTML = "";
+        let records = [];
+        
+        for(let i=0; i<localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if(key.startsWith('BOMBA_')) {
+                records.push(key);
+            }
+        }
+
+        records.sort().reverse(); // Urutan terbaru di atas
+
+        records.forEach(key => {
+            const displayName = key.replace('BOMBA_', '');
+            list.innerHTML += `<div class="record-item">
+                <span>${displayName}</span>
+                <div>
+                    <button onclick="openRecord('${key}')" style="background:#f39c12; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px;">Buka</button>
+                    <button onclick="deleteRecord('${key}')" style="background:#c0392b; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; margin-left:5px;">Hapus</button>
+                </div>
+            </div>`;
+        });
+    }
+
+    function openRecord(key) {
+        const data = JSON.parse(localStorage.getItem(key));
+        currentEditKey = key;
+        document.getElementById('rec_name').value = key.replace('BOMBA_', '');
+        document.getElementById('a_siri').value = data.a_siri;
+        document.getElementById('a_jentera').value = data.a_jentera;
+        document.getElementById('c_no_daftar').value = data.c_no;
+
+        const aInputs = document.querySelectorAll('.a-data');
+        data.a_vals.forEach((v, i) => aInputs[i].value = v);
+
+        const cYears = document.querySelectorAll('.c-year');
+        data.c_year.forEach((v, i) => cYears[i].value = v);
+
+        const cKms = document.querySelectorAll('.c-km');
+        data.c_km.forEach((v, i) => { cKms[i].value = v; });
+
+        const cLits = document.querySelectorAll('.c-lit');
+        data.c_lit.forEach((v, i) => { cLits[i].value = v; calc(i); });
+
+        document.getElementById('u_1').value = data.ulasan[0];
+        document.getElementById('u_2').value = data.ulasan[1];
+        document.getElementById('u_3').value = data.ulasan[2];
+        
+        window.scrollTo({ top: 400, behavior: 'smooth' });
+        alert("Rekod " + key.replace('BOMBA_', '') + " telah dimuatkan.");
+    }
+
+    function deleteRecord(key) {
+        if(confirm("Hapus rekod ini secara kekal dari memori komputer?")) {
+            localStorage.removeItem(key);
+            loadRecordsList();
+        }
+    }
+
+    function resetForm() {
+        if(confirm("Padam semua input? Pastikan data telah disimpan.")) {
+            currentEditKey = null;
+            window.location.reload();
+        }
+    }
+
+    window.onload = init;
+</script>
+</body>
+</html>
